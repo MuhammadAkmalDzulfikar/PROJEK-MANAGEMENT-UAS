@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model events {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  description   String?         @db.Text
+  date          DateTime        @db.Date
+  location      String?         @db.VarChar(255)
+  capacity      Int
+  registrations registrations[]
+}
+
+model participants {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  email         String          @unique(map: "email") @db.VarChar(255)
+  phone_number  String?         @db.VarChar(15)
+  password      String          @db.VarChar(255) // Kolom untuk menyimpan hash password
+  registrations registrations[]
+}
+
+model registrations {
+  id                Int          @id @default(autoincrement())
+  event_id          Int
+  participant_id    Int
+  registration_date DateTime?    @default(now()) @db.DateTime(0)
+  events            events       @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "registrations_ibfk_1")
+  participants      participants @relation(fields: [participant_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "registrations_ibfk_2")
+
+  @@index([event_id], map: "event_id")
+  @@index([participant_id], map: "participant_id")
+}
